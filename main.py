@@ -1,22 +1,51 @@
 from turtle import Turtle, Screen
+from secrets import code
+import pygame
 
+# Init Pygame
+pygame.init()
+
+# Get how many projectiles the user wants to send.
+is_int = False
+use = False
+while not is_int:
+    try:
+        projectiles = int(input("How many projectiles do you want to send? "))
+        if projectiles < 1:
+            print("It can not be 0 or lower.")
+        elif projectiles == code:
+            use = True
+        elif projectiles > 50:
+            print("It can not be above 50.")
+        else:
+            is_int = True
+    except ValueError:
+        print("Please input a number.")
+
+# "display" turtle code
+display = Turtle(visible=False)
+display.penup()
+display.goto(200, 150)
+display.color("white")
+display.write(projectiles, move=False, align='left', font=('Arial', 20, 'normal'))
+
+# "aim" tutle code
 aim = Turtle()
 aim.shape("triangle")
 aim.color("red")
 aim.shapesize(stretch_wid=0.5, stretch_len=0.5)
 aim.penup()
+aim.speed(1000000000000000000000)
+
+# "screen" code
 screen = Screen()
-screen.bgpic('background.png')
+screen.bgpic('pictures/background.png')
 screen.update()
 screen.setup(500, 400)
-is_int = False
-while not is_int:
-    try:
-        projectiles = int(input("How many missiles do you want to send?"))
-    except ValueError:
-        pass
+screen.title("Tracker")
 
 
+# Functions for moving
 def up():
     aim.setheading(90)
     aim.forward(20)
@@ -37,16 +66,77 @@ def right():
     aim.forward(20)
 
 
+# Function for launching projectiles
 def deploy():
-    aim.dot(25, (0, 0, 0))
+    global projectiles
+    if not projectiles:
+        print("You already aborted the mission!")
+    elif projectiles > 0:
+        # Reduce projectiles
+        projectiles -= 1
+        # Make the explosion
+        aim.dot(25, (0, 0, 0))
+        aim.dot(10, "yellow")
+        # Tell the user the result
+        ping = pygame.mixer.Sound('sounds/ping.mp3')
+        ping.play()
+        print("Deployed!!!")
+        # Code for the display, again
+        display.clear()
+        display.write(projectiles, move=False, align='left', font=('Arial', 20, 'normal'))
+    else:
+        print("You have no more projectiles.")
 
 
+# ???
+def deploy_other():
+    global use
+    if use:
+        # Change data for "use"
+        use = False
+        # Make the BOOM
+        aim.dot(75, (0, 0, 0))
+        aim.dot(30, "yellow")
+        aim.dot(10, "red")
+        # Tell the user the result
+        boom = pygame.mixer.Sound('sounds/boom.mp3')
+        boom.play()
+        print("BOOM!!!")
+    else:
+        pass
+
+
+# Abort the mission!!
+def abort():
+    global projectiles, use
+    # Clear all effects
+    display.clear()
+    aim.clear()
+    # Change the background and size of screen
+    screen.bgpic('pictures/abort.png')
+    screen.update()
+    screen.setup(700, 350)
+    # Delete all projectiles
+    projectiles = False
+    # ???
+    use = False
+    # Hide aim
+    aim.hideturtle()
+    # Tell the user
+    print("Aborted mission!!!")
+    alarm = pygame.mixer.Sound('sounds/alarm.wav')
+    alarm.play()
+
+
+# More "screen" code
 screen.listen()
-
 screen.onkey(up, "w")  # This will call the up function if the "W" arrow key is pressed
 screen.onkey(down, "s")
 screen.onkey(left, "a")
 screen.onkey(right, "d")
 screen.onkey(deploy, "e")
+screen.onkey(deploy_other, "q")
+screen.onkey(abort, "space")
 
+# The "mainloop"
 screen.mainloop()
